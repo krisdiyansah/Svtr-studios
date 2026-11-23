@@ -1,0 +1,24 @@
+{
+  "name": "savitar-studios-ecommerce",
+  "version": "1.0.0",
+  "description": "Savitar Studios // Y2K Streetwear E-Commerce Fullstack Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": [
+    "streetwear",
+    "ecommerce",
+    "y2k",
+    "savitar-studios",
+    "monochrome"
+  ],
+  "author": "savitar.studios",
+  "license": "ISC"
+}

@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/admin.html", "destination": "/404" },
+    { "source": "/admin", "destination": "/404" },
+    { "source": "/admin/(.*)", "destination": "/404" },
+    { "source": "/svtr-portal-master", "destination": "/admin.html" }
+  ],
+  "headers": [
+    {
+      "source": "/svtr-portal-master",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    }
+  ]
+}

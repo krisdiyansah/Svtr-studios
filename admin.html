@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>savitar.studios // Panel Administrasi & Inventaris Stok</title>
+  <meta name="description" content="Dashboard manajemen produk, stok real-time, dan kontrol inventaris savitar.studios.">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Favicon / SVG Monogram -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'><ellipse cx='50' cy='30' rx='46' ry='26' fill='%23080808' stroke='%23ccff00' stroke-width='4'/><text x='50' y='38' fill='%23f5f5f5' font-family='sans-serif' font-weight='900' font-size='20' text-anchor='middle'>SVTR</text></svg>">
+</head>
+<body class="admin-body">
+
+  <!-- =========================================================================
+       1. ADMIN LOGIN VIEW (TERKUNCI KEAMANAN HASH)
+       ========================================================================= -->
+  <div id="adminLoginSection" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: 8px; width: 100%; max-width: 440px; padding: 2.25rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;">
+      
+      <!-- SVTR Emblem Center -->
+      <div style="text-align: center; margin-bottom: 1.75rem;">
+        <div class="brand-monogram" style="width: 70px; height: 42px; margin: 0 auto 0.75rem;">
+          <svg viewBox="0 0 120 70" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="35" rx="56" ry="31" fill="#0c0c0c" stroke="#f5f5f5" stroke-width="3.5"/>
+            <text x="60" y="44" fill="#ffffff" font-family="'Archivo Black', sans-serif" font-size="25" font-weight="900" text-anchor="middle" letter-spacing="3.5">
+              SVTR
+            </text>
+          </svg>
+        </div>
+        <h1 style="font-family: var(--font-display); font-size: 1.3rem; letter-spacing: -0.02em; text-transform: uppercase;">
+          PORTAL ADMIN KHUSUS
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+          savitar.studios // Core Inventory Control
+        </p>
+      </div>
+
+      <!-- Error Alert Message -->
+      <div id="loginErrorMessage" style="display: none; background: rgba(255, 42, 42, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 0.65rem 0.85rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 1.25rem;">
+        Kredensial tidak valid. Silakan periksa username & password.
+      </div>
+
+      <!-- Login Form -->
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label class="form-label" for="adminUsername">Username Admin</label>
+          <input type="text" id="adminUsername" class="form-input" placeholder="Username admin..." required autocomplete="username">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.5rem;">
+          <label class="form-label" for="adminPassword">Password (Terenkripsi)</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="adminPassword" class="form-input" placeholder="Password admin..." required autocomplete="current-password" style="padding-right: 42px;">
+            <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" title="Lihat/Sembunyikan Password" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.25rem;">
+          <button type="button" onclick="showResetPasswordView()" style="color: var(--accent-lime); font-family: var(--font-mono); font-size: 0.72rem; text-decoration: underline; background: none; border: none; padding: 0; cursor: pointer;">
+            Lupa / Reset Password? ↵
+          </button>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          MASUK KE PANEL ADMIN
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Reset Password Form (Terkunci Master Recovery Key) -->
+      <form id="adminResetPasswordForm" style="display: none;">
+        <div style="background: rgba(204,255,0,0.06); border: 1px solid rgba(204,255,0,0.3); border-radius: 4px; padding: 0.85rem; margin-bottom: 1.25rem; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); line-height: 1.5;">
+          <div style="color: var(--accent-lime); font-weight: 700; margin-bottom: 4px;">⚡ VERIFIKASI KEAMANAN PEMILIK:</div>
+          Masukkan Master Recovery Key resmi brand Anda untuk memverifikasi kepemilikan sebelum membuat password baru.
+        </div>
+
+        <div id="resetErrorMessage" style="display: none; background: rgba(255, 42, 42, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 0.65rem 0.85rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 1.25rem;"></div>
+
+        <div class="form-group">
+          <label class="form-label" for="resetUsername">Username Admin</label>
+          <input type="text" id="resetUsername" class="form-input" placeholder="Username akun admin..." required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="resetRecoveryKey">Master Recovery Key</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="resetRecoveryKey" class="form-input" placeholder="Masukkan Master Recovery Key..." required autocomplete="off" style="padding-right: 42px;">
+            <button type="button" onclick="toggleInputVisibility('resetRecoveryKey', this)" title="Lihat/Sembunyikan" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="resetNewPassword">Password Baru (Min. 6 Karakter)</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="resetNewPassword" class="form-input" placeholder="Masukkan password baru..." required minlength="6" autocomplete="new-password" style="padding-right: 42px;">
+            <button type="button" onclick="toggleInputVisibility('resetNewPassword', this)" title="Lihat/Sembunyikan" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="resetConfirmPassword">Konfirmasi Password Baru</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="resetConfirmPassword" class="form-input" placeholder="Ulangi password baru..." required minlength="6" autocomplete="new-password" style="padding-right: 42px;">
+            <button type="button" onclick="toggleInputVisibility('resetConfirmPassword', this)" title="Lihat/Sembunyikan" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">👁️</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+          <button type="submit" class="btn-primary" style="flex: 1.3; justify-content: center; padding: 0.85rem; font-size: 0.8rem;">
+            SIMPAN PASSWORD BARU
+          </button>
+          <button type="button" class="btn-secondary" onclick="showLoginView()" style="flex: 0.7; justify-content: center; font-size: 0.75rem;">
+            ← BATAL
+          </button>
+        </div>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-family: var(--font-mono); font-size: 0.75rem;">
+        <a href="index.html" style="color: var(--text-muted); text-decoration: underline;">
+          ← Kembali ke Katalog Publik (Buyer)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. ADMIN DASHBOARD & CRUD VIEW (TERBUKA SETELAH LOGIN)
+       ========================================================================= -->
+  <div id="adminDashboardSection" style="display: none;">
+    
+    <!-- Top Header Navigation -->
+    <header class="admin-header">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="brand-monogram">
+          <svg viewBox="0 0 120 70" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="35" rx="56" ry="31" fill="#0c0c0c" stroke="#f5f5f5" stroke-width="3.5"/>
+            <text x="60" y="44" fill="#ffffff" font-family="'Archivo Black', sans-serif" font-size="25" font-weight="900" text-anchor="middle" letter-spacing="3.5">
+              SVTR
+            </text>
+          </svg>
+        </div>
+        <div>
+          <span style="font-family: var(--font-display); font-size: 1.05rem; letter-spacing: -0.01em;">savitar.studios</span>
+          <span class="admin-badge-role">SUPERADMIN</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+        <button type="button" onclick="openChangePasswordModal()" class="btn-secondary" style="font-size: 0.75rem; padding: 0.45rem 0.85rem; border-color: var(--border-medium); color: var(--text-main);">
+          Ganti Password 🔑
+        </button>
+        <a href="index.html" target="_blank" class="btn-secondary" style="font-size: 0.75rem; padding: 0.45rem 0.85rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Lihat Web Store ↗
+        </a>
+        <button id="adminLogoutBtn" class="btn-secondary" style="font-size: 0.75rem; padding: 0.45rem 0.85rem; border-color: rgba(255,42,42,0.4); color: var(--accent-red);">
+          Logout ✕
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="admin-container">
+      
+      <!-- Metrics KPI Cards -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total Artikel</div>
+          <div class="metric-value" id="metricTotalArticles">0</div>
+          <div class="metric-sub">Katalog produk aktif</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Unit Fisik</div>
+          <div class="metric-value" id="metricTotalUnits" style="color: var(--accent-lime);">0</div>
+          <div class="metric-sub">Unit stok garmen di gudang</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Stok Menipis (≤ 5)</div>
+          <div class="metric-value" id="metricLowStock" style="color: var(--accent-orange);">0</div>
+          <div class="metric-sub">Perlu restock segera</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Habis (Sold Out)</div>
+          <div class="metric-value" id="metricSoldOut" style="color: var(--accent-red);">0</div>
+          <div class="metric-sub">Stok habis di etalase</div>
+        </div>
+      </section>
+
+      <!-- Inventory Management Toolbar -->
+      <section class="admin-toolbar">
+        <div class="admin-toolbar-left">
+          <button id="btnOpenCreateModal" class="btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.8rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            TAMBAH PRODUK BARU
+          </button>
+
+          <button id="btnResetData" class="btn-secondary" style="font-size: 0.75rem; padding: 0.65rem 0.95rem; font-family: var(--font-mono);" title="Pulihkan katalog ke data bawaan awal">
+            ↺ Pulihkan Default
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <!-- Category Filter -->
+          <select id="adminCategoryFilter" class="form-select" style="width: auto; padding: 0.5rem 0.85rem; font-family: var(--font-mono); font-size: 0.78rem;">
+            <option value="All">Semua Kategori</option>
+            <option value="Outerwear">Outerwear & Jackets</option>
+            <option value="Hoodie">Hoodie</option>
+            <option value="Tees">T-Shirts</option>
+            <option value="Flannel">Flannel</option>
+            <option value="Pants">Pants</option>
+            <option value="Accessories">Accessories</option>
+          </select>
+
+          <!-- Search Input -->
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="adminSearchInput" class="search-input" placeholder="Cari ID / Nama artikel...">
+          </div>
+        </div>
+      </section>
+
+      <!-- Inventory Products Table -->
+      <section class="table-wrapper">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>Artikel Streetwear</th>
+              <th>Harga (IDR)</th>
+              <th>Stok Real-Time (Masuk / Keluar)</th>
+              <th>Status Stok</th>
+              <th>Integrasi Shopee</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="adminInventoryBody">
+            <!-- Populated dynamically via app.js -->
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       3. MODAL CRUD FORM: TAMBAH & EDIT PRODUK
+       ========================================================================= -->
+  <div class="modal-overlay" id="productFormModalOverlay">
+    <div class="modal-container" style="max-width: 580px;">
+      <button class="modal-close-btn" id="closeProductFormBtn" aria-label="Tutup Form">✕</button>
+      
+      <div class="modal-body">
+        <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-lime); text-transform: uppercase;">// INVENTORY DATA ENTRY</span>
+        <h2 id="modalFormTitle" style="font-family: var(--font-display); font-size: 1.25rem; text-transform: uppercase; margin: 0.35rem 0 1.25rem;">
+          TAMBAH PRODUK STREETWEAR BARU
+        </h2>
+
+        <form id="productForm">
+          <div class="form-group">
+            <label class="form-label" for="inputProdName">Nama Artikel Streetwear</label>
+            <input type="text" id="inputProdName" class="form-input" placeholder="contoh: SVTR 'DISTORTED MATRIX' ZIP HOODIE" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="inputProdCategory">Kategori</label>
+              <select id="inputProdCategory" class="form-select" required>
+                <option value="Outerwear">Outerwear & Jackets</option>
+                <option value="Hoodie">Hoodie</option>
+                <option value="Tees">T-Shirts</option>
+                <option value="Flannel">Flannel</option>
+                <option value="Pants">Pants</option>
+                <option value="Accessories">Accessories</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="inputProdPrice">Harga Rupiah (IDR)</label>
+              <input type="number" id="inputProdPrice" class="form-input" placeholder="185000" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="inputProdStock">Jumlah Stok Awal</label>
+              <input type="number" id="inputProdStock" class="form-input" placeholder="10" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="inputProdShopee">Link Produk Shopee</label>
+              <input type="url" id="inputProdShopee" class="form-input" placeholder="https://shopee.co.id/shop/1524620975" value="https://shopee.co.id/shop/1524620975" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputProdImage">URL Gambar Produk</label>
+            <input type="url" id="inputProdImage" class="form-input" placeholder="https://images.unsplash.com/..." value="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputProdDesc">Deskripsi Material & Siluet</label>
+            <textarea id="inputProdDesc" class="form-textarea" placeholder="Cotton combed 16s ultra heavyweight (240 GSM). Boxy drop shoulder cut..."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">
+              SIMPAN PRODUK
+            </button>
+            <button type="button" class="btn-secondary" onclick="closeProductFormModal()" style="flex: 0.6; justify-content: center;">
+              BATAL
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. MODAL GANTI PASSWORD (INSIDE DASHBOARD)
+       ========================================================================= -->
+  <div class="modal-overlay" id="changePasswordModalOverlay">
+    <div class="modal-container" style="max-width: 460px;">
+      <button class="modal-close-btn" onclick="closeChangePasswordModal()" aria-label="Tutup Form">✕</button>
+      
+      <div class="modal-body">
+        <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-lime); text-transform: uppercase;">// ADMIN SECURITY CONFIGURATION</span>
+        <h2 style="font-family: var(--font-display); font-size: 1.25rem; text-transform: uppercase; margin: 0.35rem 0 1.25rem;">
+          GANTI PASSWORD ADMIN
+        </h2>
+
+        <form id="changePasswordDashboardForm">
+          <div class="form-group">
+            <label class="form-label" for="currentPassword">Password Saat Ini</label>
+            <div style="position: relative; display: flex; align-items: center;">
+              <input type="password" id="currentPassword" class="form-input" placeholder="Masukkan password lama..." required style="padding-right: 42px;">
+              <button type="button" onclick="toggleInputVisibility('currentPassword', this)" title="Lihat/Sembunyikan" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">👁️</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dashboardNewPassword">Password Baru (Min. 6 Karakter)</label>
+            <div style="position: relative; display: flex; align-items: center;">
+              <input type="password" id="dashboardNewPassword" class="form-input" placeholder="Password baru..." required minlength="6" style="padding-right: 42px;">
+              <button type="button" onclick="toggleInputVisibility('dashboardNewPassword', this)" title="Lihat/Sembunyikan" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">👁️</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dashboardConfirmPassword">Konfirmasi Password Baru</label>
+            <div style="position: relative; display: flex; align-items: center;">
+              <input type="password" id="dashboardConfirmPassword" class="form-input" placeholder="Ulangi password baru..." required minlength="6" style="padding-right: 42px;">
+              <button type="button" onclick="toggleInputVisibility('dashboardConfirmPassword', this)" title="Lihat/Sembunyikan" style="position: absolute; right: 8px; color: var(--text-muted); font-size: 0.8rem; padding: 4px 6px;">👁️</button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">
+              UPDATE PASSWORD
+            </button>
+            <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()" style="flex: 0.6; justify-content: center;">
+              BATAL
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
